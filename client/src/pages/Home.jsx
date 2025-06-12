@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import heroImg from '../assets/hero.png';
 
 
+
 const Container = styled.main`
   display: flex;
   flex-direction: column;
