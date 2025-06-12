@@ -1,3 +1,4 @@
+// src/pages/ProductDetail.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
@@ -7,12 +8,17 @@ function fixUrl(u) {
   if (!u) return u;
   return u.replace(/^http:\/\//, 'https://');
 }
+
 const Container = styled.main`
   background: ${p => p.theme.colors.background};
   min-height: calc(100vh - 64px);
   padding: 2rem;
   display: flex;
   gap: 2rem;
+
+  @media (max-width: ${p => p.theme.breakpoints.tablet}) {
+    flex-direction: column;
+  }
 `;
 
 const ImgSection = styled.div`
@@ -63,7 +69,7 @@ const ActionBtn = styled.button`
   border-radius: 4px;
   font-weight: bold;
   cursor: pointer;
-  background: ${p => p.danger ? p.theme.colors.error : p.theme.colors.primary};
+  background: ${p => (p.danger ? p.theme.colors.secondary : p.theme.colors.primary)};
   color: #fff;
   &:hover {
     opacity: 0.9;
@@ -117,25 +123,11 @@ const Submit = styled.button`
 `;
 
 export default function ProductDetail() {
-  // …
-  return (
-    <div>
-      <h2>{product.title}</h2>
-      <img
-        src={fixUrl(product.image)}
-        alt={product.title}
-        style={{ width: 300 }}
-      />
-      {/* … */}
-    </div>
-  );
-}
-export default function ProductDetail() {
   const { id } = useParams();
-  const nav = useNavigate();
-  const [product, setProduct] = useState(null);
+  const navigate = useNavigate();
+  const [product, setProduct]   = useState(null);
   const [comments, setComments] = useState([]);
-  const [text, setText] = useState('');
+  const [text, setText]         = useState('');
   const me = localStorage.getItem('userId');
 
   useEffect(() => {
@@ -153,7 +145,7 @@ export default function ProductDetail() {
   const handleDelete = async () => {
     if (!window.confirm('¿Eliminar este producto?')) return;
     await api.delete(`/products/${id}`);
-    nav('/');
+    navigate('/');
   };
 
   if (!product) return <Container><p>Cargando…</p></Container>;
@@ -161,7 +153,7 @@ export default function ProductDetail() {
   return (
     <Container>
       <ImgSection>
-        <Preview src={product.image} alt={product.title} />
+        <Preview src={fixUrl(product.image)} alt={product.title} />
       </ImgSection>
       <InfoSection>
         <Title>{product.title}</Title>
@@ -170,7 +162,7 @@ export default function ProductDetail() {
 
         {me === product.user._id && (
           <Actions>
-            <ActionBtn onClick={() => nav(`/product/${id}/edit`)}>
+            <ActionBtn onClick={() => navigate(`/product/${id}/edit`)}>
               Editar
             </ActionBtn>
             <ActionBtn danger onClick={handleDelete}>

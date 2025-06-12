@@ -6,10 +6,9 @@ import api from '../api';
 
 function fixUrl(u) {
   if (!u) return u;
-  // Si viene con "http://…" lo cambiamos a "https://"
   return u.replace(/^http:\/\//, 'https://');
-
 }
+
 const Card = styled.div`
   background: ${p => p.theme.colors.surface};
   border: 2px solid ${p => p.theme.colors.primary};
@@ -52,7 +51,6 @@ const Price = styled.span`
   color: ${p => p.theme.colors.secondary};
   font-weight: bold;
 `;
-// botón “Ver”
 const BtnView = styled(Link)`
   background: ${p => p.theme.colors.primary};
   color: ${p => p.theme.colors.background};
@@ -65,7 +63,6 @@ const BtnView = styled(Link)`
     background: ${p => p.theme.colors.secondary};
   }
 `;
-// botón “Añadir al carrito”
 const BtnAdd = styled.button`
   background: transparent;
   color: ${p => p.theme.colors.primary};
@@ -80,22 +77,13 @@ const BtnAdd = styled.button`
     color: ${p => p.theme.colors.background};
   }
 `;
-export default function ProductCard({ product }) {
-  return (
-    <Card>
-      {/* 2) Usa fixUrl() en lugar de product.image */}
-      <Img src={fixUrl(product.image)} alt={product.title} />
-      {/* … resto del JSX */}
-    </Card>
-  );
-}
+
 export default function ProductCard({ product }) {
   const [adding, setAdding] = useState(false);
 
   const handleAddToCart = async () => {
     setAdding(true);
     try {
-      // Asume que tu endpoint espera { productId, quantity }
       await api.post('/cart', { productId: product._id, quantity: 1 });
       alert('Producto añadido al carrito');
     } catch (err) {
@@ -108,7 +96,7 @@ export default function ProductCard({ product }) {
 
   return (
     <Card>
-      <Img src={product.image} alt={product.title}/>
+      <Img src={fixUrl(product.image)} alt={product.title} />
       <Info>
         <Name>{product.title}</Name>
         <Desc>{product.description}</Desc>
