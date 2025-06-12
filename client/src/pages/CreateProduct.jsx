@@ -1,4 +1,3 @@
-// src/pages/CreateProduct.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
@@ -53,6 +52,13 @@ const Field = styled.div`
     resize: vertical;
     min-height: 100px;
   }
+
+  img.preview {
+    display: block;
+    margin-top: 0.8rem;
+    max-width: 100%;
+    border-radius: 4px;
+  }
 `;
 
 const Submit = styled.button`
@@ -62,27 +68,53 @@ const Submit = styled.button`
   background: ${p => p.theme.colors.primary};
   border: none;
   border-radius: 4px;
-  color: #fff;
+  color: ${p => p.theme.colors.background};
   font-weight: bold;
   font-size: 1rem;
   font-family: inherit;
   cursor: pointer;
   margin-top: 0.5rem;
+  opacity: ${p => (p.disabled ? 0.6 : 1)};
 
   &:hover {
-    background: ${p => p.theme.colors.accent};
+    background: ${p => !p.disabled && p.theme.colors.secondary};
   }
 `;
 
 export default function CreateProduct() {
-  const [title, setTitle]         = useState('');
-  const [price, setPrice]         = useState('');
+  const [title, setTitle] = useState('');
+  const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
-  const [image, setImage]         = useState('');
+  const [image, setImage] = useState('');
+  const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
+
+  // Al seleccionar archivo, lo sube a /upload y guarda la URL
+  const handleFileChange = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const { data } = await api.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setImage(data.url);
+    } catch (err) {
+      console.error(err);
+      alert('Error al subir la imagen');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = async e => {
     e.preventDefault();
+    if (!image) {
+      alert('Por favor sube una imagen antes de publicar');
+      return;
+    }
     try {
       const { data } = await api.post('/products', {
         title, price, description, image
@@ -111,7 +143,7 @@ export default function CreateProduct() {
         </Field>
 
         <Field>
-          <label>Precio</label>
+          <label>Precio (€)</label>
           <input
             type="number"
             value={price}
@@ -132,17 +164,20 @@ export default function CreateProduct() {
         </Field>
 
         <Field>
-          <label>Imagen (URL)</label>
+          <label>Imagen</label>
           <input
-            type="text"
-            value={image}
-            onChange={e => setImage(e.target.value)}
-            required
-            placeholder="https://..."
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            disabled={uploading}
           />
+          {uploading && <p>Cargando imagen…</p>}
+          {image && <img src={image} alt="Vista previa" className="preview" />}
         </Field>
 
-        <Submit type="submit">Publicar</Submit>
+        <Submit type="submit" disabled={uploading}>
+          {uploading ? 'Subiendo…' : 'Publicar'}
+        </Submit>
       </FormCard>
     </Bg>
   );
