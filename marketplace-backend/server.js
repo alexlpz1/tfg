@@ -43,19 +43,21 @@ mongoose.connect(process.env.MONGO_URI, {
 app.use(express.json());
 
 // 3.a) CORS — permitimos localhost y tus dominios de Netlify/Render
+// …
 const WHITELIST = [
   'http://localhost:5173',
   'https://verdant-alpaca-650339.netlify.app',
   'https://comforting-melba-633f57.netlify.app',
-  'https://marketplacelpz.netlify.app/'
-  // añade aquí el dominio que uses realmente
+  'https://marketplacelpz.netlify.app'    // ← Añade aquí tu nuevo dominio
 ];
+
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin || WHITELIST.includes(origin)) return cb(null, true);
     cb(new Error(`CORS: origen ${origin} no permitido`));
   }
 }));
+
 
 // ==== 4) Servir estáticos desde /api/uploads ====
 app.use('/api/uploads', express.static(UPLOAD_DIR));
