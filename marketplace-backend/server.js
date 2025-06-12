@@ -77,18 +77,12 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// ————————————————
-// 6) Ruta de subida de imágenes
-// ————————————————
-app.post(
-  '/api/upload',
-  upload.single('file'),
-  (req, res) => {
-    const host = process.env.API_URL || `${req.protocol}://${req.get('host')}`;
-    const fileUrl = `${host}/uploads/${req.file.filename}`;
-    res.json({ url: fileUrl });
-  }
-);
+
+app.post('/api/upload', upload.single('file'), (req, res) => {
+  const host = process.env.API_URL || `${req.protocol}://${req.get('host')}`;
+  res.json({ url: `${host}/uploads/${req.file.filename}` });
+});
+
 
 
 app.use('/api/auth',     authRoutes);

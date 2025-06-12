@@ -1,3 +1,4 @@
+// src/pages/CreateProduct.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
@@ -29,14 +30,12 @@ const Title = styled.h2`
 
 const Field = styled.div`
   margin-bottom: 1.2rem;
-
   label {
     display: block;
     margin-bottom: 0.4rem;
     color: ${p => p.theme.colors.text};
     font-weight: 500;
   }
-
   input, textarea {
     width: 100%;
     padding: 0.6rem;
@@ -47,18 +46,7 @@ const Field = styled.div`
     font-family: inherit;
     font-size: 1rem;
   }
-
-  textarea {
-    resize: vertical;
-    min-height: 100px;
-  }
-
-  img.preview {
-    display: block;
-    margin-top: 0.8rem;
-    max-width: 100%;
-    border-radius: 4px;
-  }
+  textarea { resize: vertical; min-height: 100px; }
 `;
 
 const Submit = styled.button`
@@ -68,42 +56,47 @@ const Submit = styled.button`
   background: ${p => p.theme.colors.primary};
   border: none;
   border-radius: 4px;
-  color: ${p => p.theme.colors.background};
+  color: #fff;
   font-weight: bold;
   font-size: 1rem;
   font-family: inherit;
   cursor: pointer;
   margin-top: 0.5rem;
-  opacity: ${p => (p.disabled ? 0.6 : 1)};
+  &:hover { background: ${p => p.theme.colors.secondary}; }
+`;
 
-  &:hover {
-    background: ${p => !p.disabled && p.theme.colors.secondary};
-  }
+const Preview = styled.img`
+  display: block;
+  max-width: 200px;
+  margin: 1rem auto;
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(0,255,127,0.3);
 `;
 
 export default function CreateProduct() {
-  const [title, setTitle] = useState('');
-  const [price, setPrice] = useState('');
+  const [title, setTitle]         = useState('');
+  const [price, setPrice]         = useState('');
   const [description, setDescription] = useState('');
-  const [image, setImage] = useState('');
+  const [image, setImage]         = useState('');
   const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
 
-  // Al seleccionar archivo, lo sube a /upload y guarda la URL
+  // 1) Subida de fichero
   const handleFileChange = async e => {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
     try {
-      const { data } = await api.post('/upload', formData, {
+      const form = new FormData();
+      form.append('file', file);
+      // Llamamos a /api/upload (baseURL + '/upload')
+      const { data } = await api.post('/upload', form, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setImage(data.url);
     } catch (err) {
-      console.error(err);
-      alert('Error al subir la imagen');
+      console.error('Error subiendo imagen:', err);
+      alert('No se pudo subir la imagen');
     } finally {
       setUploading(false);
     }
@@ -112,7 +105,7 @@ export default function CreateProduct() {
   const handleSubmit = async e => {
     e.preventDefault();
     if (!image) {
-      alert('Por favor sube una imagen antes de publicar');
+      alert('Espera a que la imagen termine de subirse');
       return;
     }
     try {
@@ -143,7 +136,7 @@ export default function CreateProduct() {
         </Field>
 
         <Field>
-          <label>Precio (€)</label>
+          <label>Precio</label>
           <input
             type="number"
             value={price}
@@ -169,15 +162,12 @@ export default function CreateProduct() {
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            disabled={uploading}
           />
-          {uploading && <p>Cargando imagen…</p>}
-          {image && <img src={image} alt="Vista previa" className="preview" />}
+          { uploading && <p>Cargando imagen…</p> }
+          { image && <Preview src={image} alt="Vista previa" /> }
         </Field>
 
-        <Submit type="submit" disabled={uploading}>
-          {uploading ? 'Subiendo…' : 'Publicar'}
-        </Submit>
+        <Submit type="submit">Publicar</Submit>
       </FormCard>
     </Bg>
   );

@@ -45,7 +45,7 @@ export default function Login() {
   return (
     <Bg>
       <Card onSubmit={submit}>
-        <h2>Login Gamer</h2>
+        <h2>Login</h2>
         <input
           type="email" placeholder="Email"
           value={email} onChange={e=>setEmail(e.target.value)}
