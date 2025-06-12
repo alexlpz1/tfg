@@ -46,10 +46,11 @@ app.use(cors({
 }));
 
 // 3) Rutas
-app.use('/api/auth',     authRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/comments', commentRoutes);
-// … el resto: orders, users, etc.
+app.use('/api/auth',    authRoutes);
+app.use('/api/products',productRoutes);
+app.use('/api/comments',commentRoutes);
+app.use('/api/cart',    cartRoutes);
+app.use('/api/orders',  orderRoutes);
 
 // 4) Arrancar servidor
 const PORT = process.env.PORT || 5000;
