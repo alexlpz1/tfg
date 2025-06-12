@@ -15,20 +15,24 @@ import cartRoutes    from './routes/cart.js';
 import orderRoutes   from './routes/orders.js';
 
 dotenv.config();
+
 const app = express();
 
-// ==== 0) Obtener __dirname en ES-Modules ====
+// ==== 0) Trust proxy para req.secure detrás de Render/Cloudflare ====
+app.set('trust proxy', true);
+
+// ==== 1) Obtener __dirname en ESModules ====
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
-// ==== 1) Asegurarnos de que existe uploads/ ====
+// ==== 2) Crear uploads/ si no existe ====
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
 if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
   console.log('➡️  Directorio uploads/ creado en', UPLOAD_DIR);
 }
 
-// ==== 2) Conexión a MongoDB ====
+// ==== 3) Conectar a MongoDB ====
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -39,30 +43,29 @@ mongoose.connect(process.env.MONGO_URI, {
   process.exit(1);
 });
 
-// ==== 3) Middlewares ====
+// ==== 4) Middlewares generales ====
 app.use(express.json());
 
-// 3.a) CORS — permitimos localhost y tus dominios de Netlify/Render
-// …
+// 4.a) CORS
 const WHITELIST = [
   'http://localhost:5173',
   'https://verdant-alpaca-650339.netlify.app',
   'https://comforting-melba-633f57.netlify.app',
-  'https://marketplacelpz.netlify.app'    // ← Añade aquí tu nuevo dominio
+  'https://marketplacelpz.netlify.app',  // tu nuevo dominio
 ];
-
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin || WHITELIST.includes(origin)) return cb(null, true);
+    if (!origin || WHITELIST.includes(origin)) {
+      return cb(null, true);
+    }
     cb(new Error(`CORS: origen ${origin} no permitido`));
   }
 }));
 
-
-// ==== 4) Servir estáticos desde /api/uploads ====
+// ==== 5) Servir imágenes subidas via /api/uploads ====
 app.use('/api/uploads', express.static(UPLOAD_DIR));
 
-// ==== 5) Configurar Multer para subir archivos ====
+// ==== 6) Configurar Multer ====
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
   filename:    (req, file, cb) => {
@@ -75,7 +78,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
   fileFilter: (req, file, cb) => {
     if (!file.mimetype.startsWith('image/')) {
       return cb(new multer.MulterError('LIMIT_UNEXPECTED_FILE', 'Sólo se permiten imágenes'));
@@ -84,23 +87,22 @@ const upload = multer({
   }
 });
 
-// ==== 6) Ruta para subir la imagen ====
+// ==== 7) Ruta para subir imágenes ====
 app.post('/api/upload', (req, res) => {
   upload.single('file')(req, res, err => {
     if (err) {
       console.error('❌ Error en multer/upload:', err);
       const status = err instanceof multer.MulterError ? 400 : 500;
-      return res
-        .status(status)
-        .json({ message: err.message, code: err.code });
+      return res.status(status).json({ message: err.message, code: err.code });
     }
     if (!req.file) {
       console.warn('⚠️ multer no devolvió req.file');
       return res.status(400).json({ message: 'No se subió ningún fichero' });
     }
 
-    // Construimos la URL pública apuntando a /api/uploads
-    const host     = process.env.API_URL || `${req.protocol}://${req.get('host')}`;
+    // 7.a) Construir URL con HTTPS en prod (Render)
+    const protocol = req.secure ? 'https' : req.protocol;
+    const host     = process.env.API_URL || `${protocol}://${req.get('host')}`;
     const fileUrl  = `${host}/api/uploads/${req.file.filename}`;
 
     console.log('✅ Imagen subida:', fileUrl);
@@ -108,20 +110,20 @@ app.post('/api/upload', (req, res) => {
   });
 });
 
-// ==== 7) Resto de rutas de tu API ====
+// ==== 8) Resto de tus rutas de API ====
 app.use('/api/auth',     authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/cart',     cartRoutes);
 app.use('/api/orders',   orderRoutes);
 
-// ==== 8) Middleware global de errores ====
+// ==== 9) Middleware global de errores ====
 app.use((err, req, res, next) => {
   console.error('💥 Error inesperado:', err);
   const status = err.status || 500;
   res.status(status).json({ message: err.message });
 });
 
-// ==== 9) Arrancar servidor ====
+// ==== 10) Arrancar servidor ====
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Servidor en puerto ${PORT}`));
