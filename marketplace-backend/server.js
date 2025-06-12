@@ -4,18 +4,18 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
-import authRoutes from './routes/authRoutes.js';        // ajusta la ruta si la tienes distinta
-import productRoutes from './routes/productRoutes.js';
-import commentRoutes from './routes/commentRoutes.js';
-// … importa el resto de tus rutas (orders, users, etc.)
+import authRoutes    from './routes/auth.js';
+import productRoutes from './routes/products.js';
+import commentRoutes from './routes/comments.js';
+import cartRoutes    from './routes/cart.js';
+import orderRoutes   from './routes/orders.js';
 
 dotenv.config();
 
 const app = express();
 
-// 1) Conexión a MongoDB
-const MONGO_URI = process.env.MONGO_URI;
-mongoose.connect(MONGO_URI, {
+// Conexión a Mongo
+mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
@@ -25,35 +25,27 @@ mongoose.connect(MONGO_URI, {
   process.exit(1);
 });
 
-// 2) Middlewares
+// JSON + CORS
 app.use(express.json());
-
-// 2.a) CORS — permite tu front en Netlify y localhost
 const whitelist = [
+  'http://localhost:5173',
   'https://verdant-alpaca-650339.netlify.app',
-  'https://comforting-melba-633f57.netlify.app',
-  'http://localhost:5173'
+  'https://comforting-melba-633f57.netlify.app'
 ];
 app.use(cors({
-  origin: (origin, callback) => {
-    // si no hay origin (herramientas como Postman), permitir
-    if (!origin) return callback(null, true);
-    if (whitelist.includes(origin)) {
-      return callback(null, true);
-    }
-    callback(new Error(`CORS: origen ${origin} no permitido`));
+  origin: (origin, cb) => {
+    if (!origin || whitelist.includes(origin)) return cb(null, true);
+    cb(new Error(`CORS: origen ${origin} no permitido`));
   }
 }));
 
-// 3) Rutas
-app.use('/api/auth',    authRoutes);
-app.use('/api/products',productRoutes);
-app.use('/api/comments',commentRoutes);
-app.use('/api/cart',    cartRoutes);
-app.use('/api/orders',  orderRoutes);
+// RUTAS
+app.use('/api/auth',     authRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/cart',     cartRoutes);
+app.use('/api/orders',   orderRoutes);
 
-// 4) Arrancar servidor
+// Arranca
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Servidor en puerto ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
