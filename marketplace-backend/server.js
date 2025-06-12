@@ -16,12 +16,21 @@ connectDB();
 
 const app = express();
 
-// Ajusta CORS para permitir tu front desplegado y localhost durante desarrollo
+const whitelist = [
+  'http://localhost:5173',                       // para dev
+  'https://comforting-melba-633f57.netlify.app', // tu Netlify
+  'https://verdant-alpaca-650339.netlify.app'    // (otros deploys que uses)
+];
+
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL,           
-    'http://localhost:5173'             
-  ]
+  origin: (origin, callback) => {
+    // permitir solicitudes sin origin (p.ej: Postman)
+    if (!origin) return callback(null, true);
+    if (whitelist.includes(origin)) {
+      return callback(null, true);
+    }
+    callback(new Error(`Origin ${origin} not allowed by CORS`));
+  }
 }));
 
 app.use(express.json());
