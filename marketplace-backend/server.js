@@ -47,6 +47,7 @@ const WHITELIST = [
   'http://localhost:5173',
   'https://verdant-alpaca-650339.netlify.app',
   'https://comforting-melba-633f57.netlify.app',
+  'https://marketplacelpz.netlify.app/'
   // añade aquí el dominio que uses realmente
 ];
 app.use(cors({
