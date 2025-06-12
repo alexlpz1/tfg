@@ -4,6 +4,12 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import api from '../api';
 
+function fixUrl(u) {
+  if (!u) return u;
+  // Si viene con "http://…" lo cambiamos a "https://"
+  return u.replace(/^http:\/\//, 'https://');
+
+}
 const Card = styled.div`
   background: ${p => p.theme.colors.surface};
   border: 2px solid ${p => p.theme.colors.primary};
@@ -74,7 +80,15 @@ const BtnAdd = styled.button`
     color: ${p => p.theme.colors.background};
   }
 `;
-
+export default function ProductCard({ product }) {
+  return (
+    <Card>
+      {/* 2) Usa fixUrl() en lugar de product.image */}
+      <Img src={fixUrl(product.image)} alt={product.title} />
+      {/* … resto del JSX */}
+    </Card>
+  );
+}
 export default function ProductCard({ product }) {
   const [adding, setAdding] = useState(false);
 

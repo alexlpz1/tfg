@@ -3,6 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
 import styled from 'styled-components';
 
+function fixUrl(u) {
+  if (!u) return u;
+  return u.replace(/^http:\/\//, 'https://');
+}
 const Container = styled.main`
   background: ${p => p.theme.colors.background};
   min-height: calc(100vh - 64px);
@@ -112,6 +116,20 @@ const Submit = styled.button`
   &:hover { opacity: 0.9; }
 `;
 
+export default function ProductDetail() {
+  // …
+  return (
+    <div>
+      <h2>{product.title}</h2>
+      <img
+        src={fixUrl(product.image)}
+        alt={product.title}
+        style={{ width: 300 }}
+      />
+      {/* … */}
+    </div>
+  );
+}
 export default function ProductDetail() {
   const { id } = useParams();
   const nav = useNavigate();
