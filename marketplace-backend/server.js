@@ -19,8 +19,8 @@ const app = express();
 // Ajusta CORS para permitir tu front desplegado y localhost durante desarrollo
 app.use(cors({
   origin: [
-    process.env.FRONTEND_URL,           // ej. https://verdant-alpaca-650339.netlify.app
-    'http://localhost:5173'             // o el puerto que uses en dev
+    process.env.FRONTEND_URL,           
+    'http://localhost:5173'             
   ]
 }));
 
