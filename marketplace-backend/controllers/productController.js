@@ -13,23 +13,39 @@ export const getProductById = async (req, res) => {
 };
 
 export const createProduct = async (req, res) => {
-  const { title, description, price, image } = req.body;
-  const product = new Product({ user: req.user._id, title, description, price, image });
-  const created = await product.save();
-  res.status(201).json(created);
+  try {
+    const imgPath = req.file
+      ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+      : null;
+    const product = new Product({
+      title: req.body.title,
+      price: req.body.price,
+      description: req.body.description,
+      image: imgPath,
+      user: req.userId
+    });
+    await product.save();
+    res.status(201).json(product);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 };
 
 export const updateProduct = async (req, res) => {
-  const product = await Product.findById(req.params.id);
-  if (!product) return res.status(404).json({ message: 'Producto no encontrado' });
-
-  const { title, description, price, image } = req.body;
-  product.title = title;
-  product.description = description;
-  product.price = price;
-  product.image = image;
-  const updated = await product.save();
-  res.json(updated);
+  try {
+    const updates = {
+      title: req.body.title,
+      price: req.body.price,
+      description: req.body.description,
+    };
+    if (req.file) {
+      updates.image = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    }
+    const product = await Product.findByIdAndUpdate(req.params.id, updates, { new: true });
+    res.json(product);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 };
 
 // controllers/productController.js
