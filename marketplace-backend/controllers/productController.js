@@ -14,18 +14,17 @@ export const getProductById = async (req, res) => {
 
 export const createProduct = async (req, res) => {
   try {
-    const imgPath = req.file
-      ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
-      : null;
-    const product = new Product({
-      title: req.body.title,
-      price: req.body.price,
-      description: req.body.description,
-      image: imgPath,
-      user: req.userId
+    const { title, price, description, image } = req.body;
+    // req.user._id ya viene del middleware
+    const newProd = new Product({
+      title,
+      price,
+      description,
+      image,
+      user: req.user._id
     });
-    await product.save();
-    res.status(201).json(product);
+    const saved = await newProd.save();
+    res.status(201).json(saved);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
