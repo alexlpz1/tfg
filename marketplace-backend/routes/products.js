@@ -1,8 +1,7 @@
-// src/routes/products.js
 import express from 'express';
 import {
   getProducts,
-  getProduct,
+  getProductById,    // <— aquí
   createProduct,
   updateProduct,
   deleteProduct
@@ -11,10 +10,10 @@ import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/', getProducts);
-router.get('/:id', getProduct);
-router.post('/', protect, createProduct);       // ← aquí
-router.put('/:id', protect, updateProduct);
-router.delete('/:id', protect, deleteProduct);
+router.get('/',        getProducts);
+router.get('/:id',     getProductById);
+router.post('/',       protect, createProduct);
+router.put('/:id',     protect, updateProduct);
+router.delete('/:id',  protect, deleteProduct);
 
 export default router;
