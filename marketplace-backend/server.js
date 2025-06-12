@@ -84,25 +84,20 @@ app.post(
   '/api/upload',
   upload.single('file'),
   (req, res) => {
-    // Genera la URL completa de la imagen subida
     const host = process.env.API_URL || `${req.protocol}://${req.get('host')}`;
     const fileUrl = `${host}/uploads/${req.file.filename}`;
     res.json({ url: fileUrl });
   }
 );
 
-// ————————————————
-// 7) Tus rutas REST
-// ————————————————
+
 app.use('/api/auth',     authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/cart',     cartRoutes);
 app.use('/api/orders',   orderRoutes);
 
-// ————————————————
-// 8) Arrancar servidor
-// ————————————————
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Servidor en puerto ${PORT}`);
