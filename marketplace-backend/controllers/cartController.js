@@ -31,3 +31,8 @@ export const removeCartItem = async (req, res) => {
   await CartItem.findByIdAndDelete(req.params.id);
   res.json({ message: 'Item eliminado' });
 };
+
+export const clearCart = async (req, res) => {
+  await CartItem.deleteMany({ user: req.user._id });
+  res.status(204).send();
+};
