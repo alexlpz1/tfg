@@ -23,19 +23,31 @@ export const createProduct = async (req, res) => {
   }
 };
 
+// controllers/productController.js
+
 export const updateProduct = async (req, res) => {
   try {
-    const updates = { title: req.body.title, price: req.body.price,
-                      description: req.body.description, stock: req.body.stock };
+    const updates = {
+      title:       req.body.title,
+      price:       req.body.price,
+      description: req.body.description,
+      stock:       req.body.stock,             
+    };
     if (req.file) {
-       updates.image = `${req.protocol}://${req.get('host')}/api/uploads/${req.file.filename}`;
+      updates.image = `${req.protocol}://${req.get('host')}/api/uploads/${req.file.filename}`;
     }
-    const p = await Product.findByIdAndUpdate(req.params.id, updates, { new: true });
-    res.json(p);
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      updates,
+      { new: true }
+    );
+    if (!product) return res.status(404).json({ message: 'Producto no encontrado' });
+    res.json(product);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 };
+
 
 export const deleteProduct = async (req, res) => {
   const p = await Product.findById(req.params.id);
