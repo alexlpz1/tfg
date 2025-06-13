@@ -1,4 +1,3 @@
-// src/pages/CreateProduct.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
@@ -10,6 +9,7 @@ const Bg = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 1rem;
 `;
 
 const FormCard = styled.form`
@@ -18,7 +18,7 @@ const FormCard = styled.form`
   border-radius: 8px;
   width: 100%;
   max-width: 600px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
 `;
 
 const Title = styled.h2`
@@ -46,7 +46,18 @@ const Field = styled.div`
     font-family: inherit;
     font-size: 1rem;
   }
-  textarea { resize: vertical; min-height: 100px; }
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+`;
+
+const Preview = styled.img`
+  display: block;
+  max-width: 200px;
+  margin: 1rem auto;
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(0,255,127,0.4);
 `;
 
 const Submit = styled.button`
@@ -56,32 +67,24 @@ const Submit = styled.button`
   background: ${p => p.theme.colors.primary};
   border: none;
   border-radius: 4px;
-  color: #fff;
+  color: #000;
   font-weight: bold;
   font-size: 1rem;
-  font-family: inherit;
   cursor: pointer;
   margin-top: 0.5rem;
-  &:hover { background: ${p => p.theme.colors.secondary}; }
-`;
-
-const Preview = styled.img`
-  display: block;
-  max-width: 200px;
-  margin: 1rem auto;
-  border-radius: 4px;
-  box-shadow: 0 0 8px rgba(0,255,127,0.3);
+  transition: opacity .2s;
+  &:hover { opacity: 0.9; }
 `;
 
 export default function CreateProduct() {
   const [title, setTitle]         = useState('');
   const [price, setPrice]         = useState('');
   const [description, setDescription] = useState('');
+  const [stock, setStock]         = useState(1);
   const [image, setImage]         = useState('');
   const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
 
-  // 1) Subida de fichero
   const handleFileChange = async e => {
     const file = e.target.files[0];
     if (!file) return;
@@ -89,14 +92,12 @@ export default function CreateProduct() {
     try {
       const form = new FormData();
       form.append('file', file);
-      // Llamamos a /api/upload (baseURL + '/upload')
       const { data } = await api.post('/upload', form, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setImage(data.url);
-    } catch (err) {
-      console.error('Error subiendo imagen:', err);
-      alert('No se pudo subir la imagen');
+    } catch {
+      alert('Error al subir imagen');
     } finally {
       setUploading(false);
     }
@@ -105,17 +106,16 @@ export default function CreateProduct() {
   const handleSubmit = async e => {
     e.preventDefault();
     if (!image) {
-      alert('Espera a que la imagen termine de subirse');
+      alert('Espera a que termine de subir la imagen');
       return;
     }
     try {
       const { data } = await api.post('/products', {
-        title, price, description, image
+        title, price, description, image, stock
       });
       navigate(`/product/${data._id}`);
     } catch (err) {
-      console.error('Error publicando:', err.response?.data);
-      alert(err.response?.data?.message || 'Error al publicar. ¿Estás logueado?');
+      alert(err.response?.data?.message || 'Error al publicar');
     }
   };
 
@@ -136,9 +136,11 @@ export default function CreateProduct() {
         </Field>
 
         <Field>
-          <label>Precio</label>
+          <label>Precio (€)</label>
           <input
             type="number"
+            min="0"
+            step="0.01"
             value={price}
             onChange={e => setPrice(e.target.value)}
             required
@@ -157,14 +159,25 @@ export default function CreateProduct() {
         </Field>
 
         <Field>
+          <label>Stock</label>
+          <input
+            type="number"
+            min="0"
+            value={stock}
+            onChange={e => setStock(e.target.value)}
+            required
+          />
+        </Field>
+
+        <Field>
           <label>Imagen</label>
           <input
             type="file"
             accept="image/*"
             onChange={handleFileChange}
           />
-          { uploading && <p>Cargando imagen…</p> }
-          { image && <Preview src={image} alt="Vista previa" /> }
+          {uploading && <p>Cargando imagen…</p>}
+          {image && <Preview src={image} alt="Vista previa" />}
         </Field>
 
         <Submit type="submit">Publicar</Submit>

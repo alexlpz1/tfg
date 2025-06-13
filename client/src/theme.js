@@ -7,10 +7,14 @@ export const colors = {
   text:       '#ffffff',
   subtext:    '#bbbbbb',
   border:     '#00ff7f',
+  error:      '#ff4444',
 };
-
 export const breakpoints = {
   mobile:  '480px',
   tablet:  '768px',
   desktop: '1024px',
+};
+export const hero = {
+  height: '320px',
+  bgImage: '/hero.jpg', 
 };

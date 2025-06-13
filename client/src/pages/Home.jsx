@@ -4,12 +4,14 @@ import api from '../api';
 import ProductCard from '../components/ProductCard';
 import styled from 'styled-components';
 import heroImg from '../assets/hero.png';
+import { hero } from '../theme';
 
 
 
 const Container = styled.main`
-  display: flex;
-  flex-direction: column;
+  background: ${p=>p.theme.colors.background};
+  color: ${p=>p.theme.colors.text};
+  min-height: 100vh;
 `;
 
 const Hero = styled.section`
@@ -22,6 +24,42 @@ const Hero = styled.section`
     flex-direction: column-reverse;
     text-align: center;
   }
+`;
+const Banner = styled.section`
+  background: url(${hero.bgImage}) center/cover no-repeat;
+  height: ${hero.height};
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  &::after {
+    content: ''; position:absolute; inset:0;
+    background: rgba(0,0,0,0.5);
+  }
+`;
+
+
+const BannerText = styled.h1`
+  position: relative; color: ${p=>p.theme.colors.primary};
+  font-size: 2.5rem; text-align:center;
+  @media(max-width:${p=>p.theme.breakpoints.tablet}) {
+    font-size: 1.8rem;
+  }
+`;
+
+const Section = styled.section`
+  max-width: 1200px; margin: -4rem auto 2rem;
+  padding: 0 1rem;
+`;
+
+const Title = styled.h2`
+  color: ${p=>p.theme.colors.secondary};
+  margin-bottom: 1rem;
+`;
+
+const SearchBar = styled.input`
+  width:100%; padding:.6rem; margin-bottom:1.5rem;
+  border:1px solid ${p=>p.theme.colors.border};
+  border-radius:4px; background:${p=>p.theme.colors.surface};
+  color:${p=>p.theme.colors.text};
 `;
 
 const HeroText = styled.div`
@@ -81,34 +119,28 @@ const Grid = styled.div`
 
 export default function Home() {
   const [products, setProducts] = useState([]);
-
-  useEffect(() => {
-    api.get('/products').then(r => setProducts(r.data));
-  }, []);
-//  a
+  const [q, setQ] = useState('');
+  useEffect(()=> {
+    api.get('/products').then(r=>setProducts(r.data));
+  },[]);
+  const filtered = products.filter(p =>
+    p.title.toLowerCase().includes(q.toLowerCase())
+  );
   return (
     <Container>
-      <Hero>
-        <HeroText>
-          <h1>Plataforma de venta online</h1>
-          <p>
-            Vende los productos que quieras
-          </p>
-          <button onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}>
-            Shop Now 🛒
-          </button>
-        </HeroText>
-        <HeroImage>
-          <img src={heroImg} alt="Hero gaming" />
-        </HeroImage>
-      </Hero>
-
-      <SectionTitle>Productos Destacados</SectionTitle>
-      <Grid>
-        {products.map(p => (
-          <ProductCard key={p._id} product={p} />
-        ))}
-      </Grid>
+      <Banner>
+        <BannerText>Bienvenido a nuestro Marketplace</BannerText>
+      </Banner>
+      <Section>
+        <Title>Productos</Title>
+        <SearchBar
+          placeholder="Buscar producto..."
+          value={q} onChange={e=>setQ(e.target.value)}
+        />
+        <Grid>
+          {filtered.map(p=> <ProductCard key={p._id} product={p}/>)}
+        </Grid>
+      </Section>
     </Container>
   );
 }

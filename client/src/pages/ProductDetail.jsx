@@ -1,12 +1,10 @@
-// src/pages/ProductDetail.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
 import styled from 'styled-components';
 
 function fixUrl(u) {
-  if (!u) return u;
-  return u.replace(/^http:\/\//, 'https://');
+  return u?.replace(/^http:\/\//, 'https://') || '';
 }
 
 const Container = styled.main`
@@ -18,6 +16,7 @@ const Container = styled.main`
 
   @media (max-width: ${p => p.theme.breakpoints.tablet}) {
     flex-direction: column;
+    padding: 1rem;
   }
 `;
 
@@ -31,7 +30,8 @@ const ImgSection = styled.div`
 const Preview = styled.img`
   max-width: 100%;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  filter: ${p => p.outOfStock ? 'grayscale(70%)' : 'none'};
 `;
 
 const InfoSection = styled.div`
@@ -42,18 +42,24 @@ const InfoSection = styled.div`
 const Title = styled.h1`
   color: ${p => p.theme.colors.primary};
   margin: 0 0 1rem;
-  font-size: 2rem;
+  font-size: 2.2rem;
+
+  @media (max-width: ${p => p.theme.breakpoints.tablet}) {
+    font-size: 1.8rem;
+  }
 `;
 
 const Price = styled.p`
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   color: ${p => p.theme.colors.secondary};
   margin: 0.5rem 0;
 `;
 
-const Description = styled.p`
-  line-height: 1.5;
-  color: ${p => p.theme.colors.subtext};
+const Stock = styled.p`
+  font-size: 1rem;
+  font-weight: bold;
+  color: ${p => p.outOfStock ? p.theme.colors.error : p.theme.colors.primary};
+  margin: 0.5rem 0 1rem;
 `;
 
 const Actions = styled.div`
@@ -69,10 +75,13 @@ const ActionBtn = styled.button`
   border-radius: 4px;
   font-weight: bold;
   cursor: pointer;
-  background: ${p => (p.danger ? p.theme.colors.secondary : p.theme.colors.primary)};
-  color: #fff;
-  &:hover {
-    opacity: 0.9;
+  background: ${p => p.danger ? p.theme.colors.error : p.theme.colors.primary};
+  color: #000;
+  transition: opacity .2s;
+  &:hover { opacity: 0.9; }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 `;
 
@@ -116,9 +125,10 @@ const Submit = styled.button`
   border: none;
   border-radius: 4px;
   background: ${p => p.theme.colors.primary};
-  color: #fff;
+  color: #000;
   font-weight: bold;
   cursor: pointer;
+  transition: opacity .2s;
   &:hover { opacity: 0.9; }
 `;
 
@@ -128,7 +138,7 @@ export default function ProductDetail() {
   const [product, setProduct]   = useState(null);
   const [comments, setComments] = useState([]);
   const [text, setText]         = useState('');
-  const me = localStorage.getItem('userId');
+  const userId = localStorage.getItem('userId');
 
   useEffect(() => {
     api.get(`/products/${id}`).then(r => setProduct(r.data));
@@ -148,28 +158,55 @@ export default function ProductDetail() {
     navigate('/');
   };
 
-  if (!product) return <Container><p>Cargando…</p></Container>;
+  if (!product) {
+    return <Container><p>Cargando…</p></Container>;
+  }
+
+  const outOfStock = product.stock <= 0;
 
   return (
     <Container>
       <ImgSection>
-        <Preview src={fixUrl(product.image)} alt={product.title} />
+        <Preview
+          outOfStock={outOfStock}
+          src={fixUrl(product.image)}
+          alt={product.title}
+        />
       </ImgSection>
+
       <InfoSection>
         <Title>{product.title}</Title>
         <Price>Precio: {product.price}€</Price>
-        <Description>{product.description}</Description>
+        <Stock outOfStock={outOfStock}>
+          {outOfStock ? 'Agotado' : `En stock: ${product.stock}`}
+        </Stock>
 
-        {me === product.user._id && (
-          <Actions>
-            <ActionBtn onClick={() => navigate(`/product/${id}/edit`)}>
-              Editar
-            </ActionBtn>
-            <ActionBtn danger onClick={handleDelete}>
-              Eliminar
-            </ActionBtn>
-          </Actions>
-        )}
+        <Actions>
+          <ActionBtn
+            onClick={async () => {
+              try {
+                await api.post('/cart', { productId: id, quantity: 1 });
+                alert('Añadido al carrito');
+              } catch {
+                alert('Error al añadir al carrito');
+              }
+            }}
+            disabled={outOfStock}
+          >
+            {outOfStock ? 'No disponible' : 'Añadir al carrito'}
+          </ActionBtn>
+
+          {userId === product.user._id && (
+            <>
+              <ActionBtn onClick={() => navigate(`/product/${id}/edit`)}>
+                Editar
+              </ActionBtn>
+              <ActionBtn danger onClick={handleDelete}>
+                Eliminar
+              </ActionBtn>
+            </>
+          )}
+        </Actions>
 
         <Comments>
           <CommentTitle>Comentarios</CommentTitle>
