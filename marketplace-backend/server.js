@@ -7,7 +7,6 @@ import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
 import { fileURLToPath } from 'url';
-import upload from './middleware/upload.js';
 import authRoutes    from './routes/auth.js';
 import productRoutes from './routes/products.js';
 import commentRoutes from './routes/comments.js';
