@@ -26,7 +26,7 @@ const Hero = styled.section`
   }
 `;
 const Banner = styled.section`
-  background: url(${hero.bgImage}) center/cover no-repeat;
+  background: url(${p => p.bgUrl}) center/cover no-repeat;
   height: ${hero.height};
   display: flex; align-items: center; justify-content: center;
   position: relative;
@@ -128,8 +128,8 @@ export default function Home() {
   );
   return (
     <Container>
-      <Banner>
-        <BannerText>Bienvenido a nuestro Marketplace</BannerText>
+      <Banner bgUrl="https://gamerx-demo.myshopify.com/cdn/shop/files/hero-bg.png?v=1725687619">
+        <BannerTitle>Bienvenido a MarketPlace</BannerTitle>
       </Banner>
       <Section>
         <Title>Productos</Title>
