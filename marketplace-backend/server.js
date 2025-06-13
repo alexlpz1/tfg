@@ -7,7 +7,7 @@ import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
 import { fileURLToPath } from 'url';
-
+import upload from './middleware/upload.js';
 import authRoutes    from './routes/auth.js';
 import productRoutes from './routes/products.js';
 import commentRoutes from './routes/comments.js';
@@ -18,20 +18,16 @@ dotenv.config();
 
 const app = express();
 
-// ==== 0) Trust proxy para req.secure detrás de Render/Cloudflare ====
 app.set('trust proxy', true);
 
-// ==== 1) Obtener __dirname en ESModules ====
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
-// ==== 2) Crear uploads/ si no existe ====
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
 if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
   console.log('➡️  Directorio uploads/ creado en', UPLOAD_DIR);
 }
-
 // ==== 3) Conectar a MongoDB ====
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
@@ -86,6 +82,10 @@ const upload = multer({
     cb(null, true);
   }
 });
+
+app.post('/api/upload', upload.single('file'), (req, res) => {
+  res.json({ url: req.file.path })
+})
 
 // ==== 7) Ruta para subir imágenes ====
 app.post('/api/upload', (req, res) => {
