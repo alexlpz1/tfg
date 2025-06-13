@@ -1,16 +1,33 @@
 import Order from '../models/Order.js';
 import mongoose from 'mongoose';
+import Product from '../models/Product.js';
 
-// Crear orden (ya lo tenías)
 export const createOrder = async (req, res) => {
-  const { items, total } = req.body;
-  const order = new Order({
-    user: req.user._id,
-    items,
-    total
-  });
-  const created = await order.save();
-  res.status(201).json(created);
+  try {
+    const { items, shipping, total } = req.body;
+    for (const item of items) {
+      const prod = await Product.findById(item.product);
+      if (!prod) {
+        return res.status(404).json({ message: `Producto ${item.product} no encontrado` });
+      }
+      if (prod.stock < item.quantity) {
+        return res.status(400).json({ message: `Stock insuficiente para ${prod.title}` });
+      }
+      prod.stock -= item.quantity;
+      await prod.save();
+    }
+    const order = new Order({
+      user: req.user._id,
+      items,
+      shipping,
+      total
+    });
+    const savedOrder = await order.save();
+    res.status(201).json(savedOrder);
+  } catch (err) {
+    console.error('❌ Error creando orden:', err);
+    res.status(400).json({ message: err.message });
+  }
 };
 
 // Tus compras
