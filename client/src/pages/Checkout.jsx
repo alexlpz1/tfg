@@ -93,11 +93,19 @@ export default function Checkout() {
 
   useEffect(() => {
     api.get('/cart')
-      .then(res => setItems(res.data))
+      .then(res => {
+        // Filtra cualquier entrada sin producto válido
+        const valid = res.data.filter(i => i.product && i.quantity > 0);
+        setItems(valid);
+      })
       .catch(console.error);
   }, []);
 
-  const total = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
+  // Suma segura (si product.price no existe, usa 0)
+  const total = items.reduce(
+    (sum, i) => sum + ((i.product?.price || 0) * i.quantity),
+    0
+  );
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -108,6 +116,10 @@ export default function Checkout() {
     e.preventDefault();
     if (!shipping.name || !shipping.address) {
       alert('Por favor, completa todos los campos de envío.');
+      return;
+    }
+    if (items.length === 0) {
+      alert('Tu carrito está vacío.');
       return;
     }
     try {
@@ -141,12 +153,14 @@ export default function Checkout() {
           ) : (
             items.map(i => (
               <Item key={i.product._id}>
-                <span>{i.product.title} x {i.quantity}</span>
-                <span>{(i.product.price * i.quantity).toFixed(2)}€</span>
+                <span>{i.product.title} × {i.quantity}</span>
+                <span>{( (i.product.price || 0) * i.quantity ).toFixed(2)}€</span>
               </Item>
             ))
           )}
-          {items.length > 0 && <Total>Total: {total.toFixed(2)}€</Total>}
+          {items.length > 0 && (
+            <Total>Total: {total.toFixed(2)}€</Total>
+          )}
         </Summary>
 
         <Form onSubmit={handleSubmit}>
